@@ -7,7 +7,7 @@ A full-stack restaurant ordering and management application. The frontend is bui
 - [Local setup and submission checklist](#local-setup)
 - [API and frontend integration guide](docs/API_AND_FRONTEND_INTEGRATION.md)
 - [Database structure and relationships](docs/DATABASE_SCHEMA.md)
-- [Monday presentation walkthrough](docs/MONDAY_PRESENTATION.md)
+- [Monday presentation walkthrough](docs/.md)
 
 ## Requirements
 
@@ -103,7 +103,7 @@ The backend authenticates the database and calls `sequelize.sync({ alter: false 
 
 The backend exposes CRUD endpoints for users, categories, menu items, and orders. JSON bodies are validated with Zod; menu-item creation also supports multipart image uploads. Responses use JSON and standard HTTP status codes. Protected requests use a JWT in `Authorization: Bearer <token>`.
 
-Route handlers delegate business and persistence logic to service modules, which use Sequelize models. See [API and frontend integration](docs/API_AND_FRONTEND_INTEGRATION.md) for endpoint details and working examples, [database structure](docs/DATABASE_SCHEMA.md) for tables/foreign keys, and the [presentation walkthrough](docs/MONDAY_PRESENTATION.md) for the class demonstration.
+Route handlers delegate business and persistence logic to service modules, which use Sequelize models. See [API and frontend integration](docs/API_AND_FRONTEND_INTEGRATION.md) for endpoint details and working examples, [database structure](docs/DATABASE_SCHEMA.md) for tables/foreign keys, and the [presentation walkthrough](docs/.md) for the class demonstration.
 
 ## Submission checklist
 
@@ -112,5 +112,5 @@ Route handlers delegate business and persistence logic to service modules, which
 - Database structure: see [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md); PostgreSQL tables are synchronized from Sequelize models at startup.
 - API reference and request examples: see [docs/API_AND_FRONTEND_INTEGRATION.md](docs/API_AND_FRONTEND_INTEGRATION.md).
 - Local run instructions: this README.
-- Class presentation sequence: see [docs/MONDAY_PRESENTATION.md](docs/MONDAY_PRESENTATION.md).
+- Class presentation sequence: see [docs/.md](docs/.md).
 # fullStack_restaurant_website
