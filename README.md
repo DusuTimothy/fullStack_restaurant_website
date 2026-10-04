@@ -7,7 +7,6 @@ A full-stack restaurant ordering and management application. The frontend is bui
 - [Local setup and submission checklist](#local-setup)
 - [API and frontend integration guide](docs/API_AND_FRONTEND_INTEGRATION.md)
 - [Database structure and relationships](docs/DATABASE_SCHEMA.md)
-- [Monday presentation walkthrough](docs/.md)
 
 ## Requirements
 
