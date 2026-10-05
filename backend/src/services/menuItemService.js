@@ -19,7 +19,7 @@ const removeUploadedFile = (relativeOrFullPath) => {
 /**
  * Retrieves all menu items matching query filters.
  *
- * @param {object} filters
+ * @param {object} filters 
  * @param {string|number} [filters.categoryId]
  * @param {string} [filters.isAvailable]
  * @returns {Promise<MenuItem[]>}
