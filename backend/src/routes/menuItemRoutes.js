@@ -14,7 +14,7 @@ router.get('/:id', menuItemController.getMenuItemById);
 router.post(
   '/',
   requireAdmin,
-  upload.single('image'),
+  upload.single('image'), 
   validate(createMenuItemSchema),
   menuItemController.createMenuItem
 );
