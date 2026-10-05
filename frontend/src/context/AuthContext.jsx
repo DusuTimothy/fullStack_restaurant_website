@@ -99,13 +99,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Signup handler
-  const signup = async ({ name, email, password, phone, role = 'customer' }) => {
+  const signup = async ({ name, email, password, phone }) => {
     const response = await axiosClient.post('/auth/signup', {
       name: name.trim(),
       email: email.trim(),
       password,
       phone: phone?.trim() || undefined,
-      role,
     });
 
     if (response.data?.success) {

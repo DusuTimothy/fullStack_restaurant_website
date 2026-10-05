@@ -49,12 +49,14 @@ A full-stack restaurant ordering and management application. The frontend is bui
    DB_NAME=restaurant_db
    DB_USER=restaurant_app
    DB_PASSWORD=your-local-database-password
+   # Optional: PostgreSQL CA certificate path (relative to backend/) or inline PEM
+   DB_SSL_CA_PATH=
    JWT_SECRET=replace-with-a-random-secret-at-least-32-characters-long
    JWT_EXPIRES_IN=24h
    SEED_USER_PASSWORD=choose-a-local-development-sample-password
    ```
 
-   Keep `.env` private; do not commit or share it. `SEED_USER_PASSWORD` is required for seeding local sample customer and staff accounts; never configure or use sample passwords in production. The frontend uses `http://localhost:5000/api` by default. Set `VITE_BACKEND_URL` or `VITE_API_URL` in the frontend environment only if your backend uses a different URL. Do not put database credentials in the frontend.
+   Keep `.env` private; do not commit or share it. For a hosted PostgreSQL database whose provider supplies a CA certificate, set `DB_SSL_CA_PATH` to its file path (for example, `certs/provider-ca.pem`, relative to `backend/`, or an absolute path), or set it to the inline PEM certificate. The backend verifies the database certificate against that CA. Make the CA file available wherever the backend runs when using a path. `SEED_USER_PASSWORD` is required for seeding local sample customer and staff accounts; never configure or use sample passwords in production. The frontend uses `http://localhost:5000/api` by default. Set `VITE_BACKEND_URL` or `VITE_API_URL` in the frontend environment only if your backend uses a different URL. Do not put database credentials in the frontend.
 
 4. Seed initial development sample data (non-destructive):
 

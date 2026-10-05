@@ -1929,17 +1929,6 @@ body {
   list-style: disc;
 }
 
-.auth-role-notice {
-  font-size: 0.785rem;
-  color: #64748b;
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: var(--radius-sm);
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-}
-
 .auth-demo-box {
   margin-top: 1.5rem;
   padding: 0.85rem;
@@ -2420,81 +2409,6 @@ body {
 .btn-mobile-logout:hover {
   background-color: #ffe4e6;
   border-color: #fda4af;
-}
-
-/* Role Selector in Signup */
-.role-selector-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.65rem;
-  margin-top: 0.35rem;
-}
-
-.role-option-card {
-  background-color: #ffffff;
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 0.65rem;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s ease;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.role-option-card:hover:not(:disabled) {
-  border-color: #cbd5e1;
-  background-color: #f8fafc;
-}
-
-.role-option-card.selected {
-  border-color: var(--primary);
-  background-color: #fffbeb;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
-}
-
-.role-option-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.role-option-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  shrink: 0;
-}
-
-.customer-icon {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.staff-icon {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.admin-icon {
-  background-color: #fee2e2;
-  color: #b91c1c;
-}
-
-.role-option-name {
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: var(--text-main);
-}
-
-.role-option-desc {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.35;
 }
 
 /* User Profile Page Styles */
@@ -3229,10 +3143,6 @@ body {
     display: none;
   }
 
-  .role-selector-grid {
-    grid-template-columns: 1fr;
-  }
-
   .profile-header-card {
     flex-direction: column;
     text-align: center;
@@ -3302,5 +3212,4 @@ body {
     -webkit-overflow-scrolling: touch;
   }
 }
-
 
