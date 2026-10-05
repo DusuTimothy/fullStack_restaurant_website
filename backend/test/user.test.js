@@ -454,5 +454,100 @@ describe('User Controller & Service Test Suite', () => {
       const inDb = await User.findByPk(userToDelete.id);
       assert.equal(inDb, null);
     });
+
+    test('customer can delete their own account successfully', async () => {
+      // Create a dedicated user for self deletion
+      const selfDeleteEmail = `selfdelete_${Date.now()}@example.com`;
+      const testPassword = await bcrypt.hash('Password123!', 10);
+      const userToSelfDelete = await User.create({
+        name: 'Self Delete User',
+        email: selfDeleteEmail,
+        password: testPassword,
+        role: 'customer',
+      });
+
+      // Login as this user
+      const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: selfDeleteEmail, password: 'Password123!' }),
+      });
+      const loginData = await loginRes.json();
+      const userToken = loginData.data.token;
+
+      // Self delete
+      const res = await fetch(`${baseUrl}/api/users/${userToSelfDelete.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.success, true);
+
+      const inDb = await User.findByPk(userToSelfDelete.id);
+      assert.equal(inDb, null);
+    });
+
+    test('customer can get their own profile via GET /api/users/me', async () => {
+      const res = await fetch(`${baseUrl}/api/users/me`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${customerToken}` },
+      });
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.success, true);
+      assert.equal(body.data.id, customerUser.id);
+      assert.ok(Array.isArray(body.data.orders));
+    });
+
+    test('admin can restrict and unrestrict a user via PATCH /api/users/:id/restrict', async () => {
+      const testEmail = `restrict_test_${Date.now()}@example.com`;
+      const testUser = await User.create({
+        name: 'Test Restrict',
+        email: testEmail,
+        role: 'customer',
+        isRestricted: false,
+      });
+
+      // Restrict user
+      const restrictRes = await fetch(`${baseUrl}/api/users/${testUser.id}/restrict`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ isRestricted: true }),
+      });
+
+      assert.equal(restrictRes.status, 200);
+      const restrictBody = await restrictRes.json();
+      assert.equal(restrictBody.data.isRestricted, true);
+
+      // Unrestrict user
+      const unrestrictRes = await fetch(`${baseUrl}/api/users/${testUser.id}/restrict`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ isRestricted: false }),
+      });
+
+      assert.equal(unrestrictRes.status, 200);
+      const unrestrictBody = await unrestrictRes.json();
+      assert.equal(unrestrictBody.data.isRestricted, false);
+
+      // Customer cannot restrict users (403)
+      const customerRestrictRes = await fetch(`${baseUrl}/api/users/${testUser.id}/restrict`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${customerToken}`,
+        },
+        body: JSON.stringify({ isRestricted: true }),
+      });
+      assert.equal(customerRestrictRes.status, 403);
+    });
   });
 });

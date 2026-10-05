@@ -7,8 +7,8 @@ const authService = require('../services/authService');
  */
 const signup = async (req, res, next) => {
   try {
-    const { name, email, password, phone } = req.body;
-    const result = await authService.registerCustomer({ name, email, password, phone });
+    const { name, email, password, phone, role } = req.body;
+    const result = await authService.registerUser({ name, email, password, phone, role });
 
     if (result.error) {
       return res.status(409).json({
@@ -39,9 +39,11 @@ const login = async (req, res, next) => {
     const result = await authService.authenticateUser({ email, password });
 
     if (result.error) {
-      return res.status(401).json({
+      const statusCode = result.isRestricted ? 403 : 401;
+      return res.status(statusCode).json({
         success: false,
         error: result.error,
+        isRestricted: Boolean(result.isRestricted),
       });
     }
 

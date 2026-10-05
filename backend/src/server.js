@@ -23,6 +23,21 @@ const startServer = async () => {
 
     // Sync database schema (in development, alter tables if needed)
     await sequelize.sync({ alter: false });
+    try {
+      const queryInterface = sequelize.getQueryInterface();
+      const tableDesc = await queryInterface.describeTable('users');
+      if (!tableDesc.isRestricted) {
+        const { DataTypes } = require('sequelize');
+        await queryInterface.addColumn('users', 'isRestricted', {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+        });
+        console.log('✅ Added "isRestricted" column to users table.');
+      }
+    } catch (migErr) {
+      console.log('ℹ️ Schema verification notice:', migErr.message);
+    }
     console.log('✅ Database schema synchronized.');
 
     // Start Express listener

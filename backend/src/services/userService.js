@@ -27,6 +27,7 @@ const sanitizeUserUpdates = (updates, currentUser) => {
   const sanitized = { ...updates };
   if (!currentUser || currentUser.role !== 'admin') {
     delete sanitized.role;
+    delete sanitized.isRestricted;
   }
   // Admin role cannot be granted via ordinary user updates; it must use the trusted operator CLI
   if (sanitized.role === 'admin') {
@@ -111,7 +112,7 @@ const getUserByIdWithOrders = async (id) => {
  * @param {object} userData - User creation attributes
  * @returns {Promise<User>} Created user instance
  */
-const createUser = async ({ name, email, role, phone, password }) => {
+const createUser = async ({ name, email, role, phone, password, isRestricted = false }) => {
   const hashedPassword = password ? await hashPassword(password) : null;
   return await User.create({
     name,
@@ -119,6 +120,7 @@ const createUser = async ({ name, email, role, phone, password }) => {
     role,
     phone,
     password: hashedPassword,
+    isRestricted: Boolean(isRestricted),
   });
 };
 

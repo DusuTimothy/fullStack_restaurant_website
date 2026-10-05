@@ -37,6 +37,11 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: true, // Allow null for existing users without passwords
   },
+  isRestricted: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
 }, {
   tableName: 'users',
   timestamps: true,

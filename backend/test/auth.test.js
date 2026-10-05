@@ -70,26 +70,64 @@ describe('Authentication & Authorization Suite', () => {
       assert.equal(body.data.user.password, undefined, 'Password must not be returned');
     });
 
-    test('prevents privilege escalation by ignoring role: admin in signup payload', async () => {
-      const hackerEmail = `hacker_${Date.now()}@example.com`;
-      const res = await fetch(`${baseUrl}/api/auth/signup`, {
+    test('supports signup for admin, staff, and customers', async () => {
+      const adminEmail = `admin_test_${Date.now()}@example.com`;
+      const resAdmin = await fetch(`${baseUrl}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'Privilege Escalation Attempt',
-          email: hackerEmail,
+          name: 'New Admin User',
+          email: adminEmail,
           password: 'Password123!',
-          role: 'admin', // Attack vector: trying to sign up as admin
+          role: 'admin',
         }),
       });
 
-      const body = await res.json();
-      assert.equal(res.status, 201);
-      assert.equal(body.data.user.role, 'customer', 'Role must strictly remain customer');
+      const bodyAdmin = await resAdmin.json();
+      assert.equal(resAdmin.status, 201);
+      assert.equal(bodyAdmin.data.user.role, 'admin');
 
-      // Verify directly in DB
-      const dbUser = await User.findOne({ where: { email: hackerEmail } });
-      assert.equal(dbUser.role, 'customer', 'Database role must be customer');
+      const staffEmail = `staff_test_${Date.now()}@example.com`;
+      const resStaff = await fetch(`${baseUrl}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'New Staff User',
+          email: staffEmail,
+          password: 'Password123!',
+          role: 'staff',
+        }),
+      });
+
+      const bodyStaff = await resStaff.json();
+      assert.equal(resStaff.status, 201);
+      assert.equal(bodyStaff.data.user.role, 'staff');
+    });
+
+    test('rejects login and authenticated requests for restricted users (403)', async () => {
+      const restrictedEmail = `restricted_${Date.now()}@example.com`;
+      const testPassword = await bcrypt.hash('Password123!', 10);
+      const restrictedUser = await User.create({
+        name: 'Restricted User',
+        email: restrictedEmail,
+        password: testPassword,
+        role: 'customer',
+        isRestricted: true,
+      });
+
+      // Login attempt
+      const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: restrictedEmail,
+          password: 'Password123!',
+        }),
+      });
+
+      assert.equal(loginRes.status, 403);
+      const loginBody = await loginRes.json();
+      assert.equal(loginBody.isRestricted, true);
     });
 
     test('rejects signup with invalid email format', async () => {

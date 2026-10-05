@@ -45,26 +45,30 @@ const generateAuthPayload = (user) => {
       email: user.email,
       role: user.role,
       phone: user.phone,
+      isRestricted: Boolean(user.isRestricted),
+      createdAt: user.createdAt,
     },
   };
 };
 
 /**
- * Signs up a new customer or activates a legacy customer account.
- * Strictly forces role: 'customer'.
+ * Signs up a new user (customer, staff, or admin) or activates an account.
  *
  * @param {object} params
  * @param {string} params.name
  * @param {string} params.email
  * @param {string} params.password
  * @param {string} [params.phone]
+ * @param {string} [params.role='customer']
  * @returns {Promise<{ error?: string, conflictType?: string, details?: Array<{field: string, message: string}>, data?: object }>}
  */
-const registerCustomer = async ({ name, email, password, phone }) => {
+const registerUser = async ({ name, email, password, phone, role = 'customer' }) => {
   const normalized = normalizeEmail(email);
   const existingUser = await findUserWithPasswordByEmail(normalized);
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  const validRoles = ['customer', 'staff', 'admin'];
+  const userRole = validRoles.includes(role) ? role : 'customer';
 
   if (existingUser) {
     if (existingUser.password) {
@@ -75,19 +79,11 @@ const registerCustomer = async ({ name, email, password, phone }) => {
       };
     }
 
-    if (existingUser.role !== 'customer') {
-      return {
-        error: 'Email already exists',
-        conflictType: 'RESERVED_ROLE',
-        details: [{ field: 'email', message: 'This email is reserved for staff/admin. Please contact management.' }],
-      };
-    }
-
     await existingUser.update({
       name: name.trim(),
       password: hashedPassword,
       phone: phone ? phone.trim() : existingUser.phone,
-      role: 'customer',
+      role: userRole,
     });
 
     return { data: generateAuthPayload(existingUser) };
@@ -98,11 +94,14 @@ const registerCustomer = async ({ name, email, password, phone }) => {
     email: normalized,
     password: hashedPassword,
     phone: phone ? phone.trim() : null,
-    role: 'customer',
+    role: userRole,
+    isRestricted: false,
   });
 
   return { data: generateAuthPayload(newUser) };
 };
+
+const registerCustomer = registerUser;
 
 /**
  * Authenticates user credentials.
@@ -110,7 +109,7 @@ const registerCustomer = async ({ name, email, password, phone }) => {
  * @param {object} credentials
  * @param {string} credentials.email
  * @param {string} credentials.password
- * @returns {Promise<{ error?: string, data?: object }>}
+ * @returns {Promise<{ error?: string, isRestricted?: boolean, data?: object }>}
  */
 const authenticateUser = async ({ email, password }) => {
   const user = await findUserWithPasswordByEmail(email);
@@ -124,6 +123,13 @@ const authenticateUser = async ({ email, password }) => {
     return { error: 'Invalid email or password' };
   }
 
+  if (user.isRestricted) {
+    return {
+      error: 'Your account has been restricted by an administrator. Please contact support.',
+      isRestricted: true,
+    };
+  }
+
   return { data: generateAuthPayload(user) };
 };
 
@@ -131,6 +137,7 @@ module.exports = {
   normalizeEmail,
   findUserWithPasswordByEmail,
   generateAuthPayload,
+  registerUser,
   registerCustomer,
   authenticateUser,
 };

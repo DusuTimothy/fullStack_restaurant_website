@@ -6,11 +6,11 @@ const NavUserSection = ({ isAuthenticated, user, onLogout }) => {
   if (isAuthenticated) {
     return (
       <div className="navbar-user-group">
-        <div className="navbar-user-chip" title={`Signed in as ${user.email}`}>
-          <UserIcon size={15} className="text-amber-700" />
+        <Link to="/profile" className="navbar-user-chip" title="Manage your Profile & Account">
+          <UserIcon size={15} className="text-amber-700 shrink-0" />
           <span className="navbar-user-name">{user.name}</span>
-          <span className="navbar-role-tag">{user.role}</span>
-        </div>
+          <span className={`navbar-role-tag role-tag-${user.role}`}>{user.role}</span>
+        </Link>
         <button
           type="button"
           className="btn-logout"

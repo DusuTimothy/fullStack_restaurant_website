@@ -99,12 +99,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Signup handler
-  const signup = async ({ name, email, password, phone }) => {
+  const signup = async ({ name, email, password, phone, role = 'customer' }) => {
     const response = await axiosClient.post('/auth/signup', {
       name: name.trim(),
       email: email.trim(),
       password,
       phone: phone?.trim() || undefined,
+      role,
     });
 
     if (response.data?.success) {
@@ -118,6 +119,26 @@ export const AuthProvider = ({ children }) => {
 
     throw new Error(response.data?.error || 'Failed to sign up');
   };
+
+  // Update current user profile in state and localStorage
+  const updateUserProfile = useCallback((updatedUserData) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedUserData };
+      try {
+        localStorage.setItem('restaurant_auth_user', JSON.stringify(merged));
+      } catch (err) {
+        console.error('Failed to update user in localStorage:', err);
+      }
+      return merged;
+    });
+  }, []);
+
+  // Delete own account handler
+  const deleteAccount = useCallback(async () => {
+    if (!user?.id) throw new Error('No user is currently signed in');
+    await axiosClient.delete(`/users/${user.id}`);
+    logout();
+  }, [user, logout]);
 
   const isAuthenticated = useMemo(() => Boolean(user && token), [user, token]);
   const isAdmin = useMemo(() => user?.role === 'admin', [user]);
@@ -133,6 +154,8 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    updateUserProfile,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { UserPlus, User, Mail, Lock, Phone, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { UserPlus, User, Mail, Lock, Phone, Eye, EyeOff, Loader2, AlertCircle, ShieldCheck, UtensilsCrossed } from 'lucide-react';
 import AuthBrandHeader from '../components/AuthBrandHeader';
 import useSignupForm from '../hooks/useSignupForm';
 
@@ -16,6 +16,7 @@ const SignupPage = () => {
     errorMessage,
     errorDetails,
     handleChange,
+    handleRoleSelect,
     handleSubmit,
   } = useSignupForm(redirectUrl);
 
@@ -138,8 +139,60 @@ const SignupPage = () => {
             </div>
           </div>
 
+          <div className="form-group">
+            <label className="form-label">
+              Choose Account Type *
+            </label>
+            <div className="role-selector-grid">
+              <button
+                type="button"
+                className={`role-option-card ${formData.role === 'customer' ? 'selected' : ''}`}
+                onClick={() => handleRoleSelect('customer')}
+                disabled={loading}
+              >
+                <div className="role-option-header">
+                  <div className="role-option-icon customer-icon">
+                    <User size={18} />
+                  </div>
+                  <span className="role-option-name">Customer</span>
+                </div>
+                <p className="role-option-desc">Order food, track orders, view menu</p>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${formData.role === 'staff' ? 'selected' : ''}`}
+                onClick={() => handleRoleSelect('staff')}
+                disabled={loading}
+              >
+                <div className="role-option-header">
+                  <div className="role-option-icon staff-icon">
+                    <UtensilsCrossed size={18} />
+                  </div>
+                  <span className="role-option-name">Staff</span>
+                </div>
+                <p className="role-option-desc">Manage kitchen orders and prepare dishes</p>
+              </button>
+
+              <button
+                type="button"
+                className={`role-option-card ${formData.role === 'admin' ? 'selected' : ''}`}
+                onClick={() => handleRoleSelect('admin')}
+                disabled={loading}
+              >
+                <div className="role-option-header">
+                  <div className="role-option-icon admin-icon">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <span className="role-option-name">Admin</span>
+                </div>
+                <p className="role-option-desc">Full restaurant control, menu & users</p>
+              </button>
+            </div>
+          </div>
+
           <div className="auth-role-notice">
-            <span>🛡️ Public signups receive a standard <strong>Customer</strong> account for ordering.</span>
+            <span>✨ Creating an account with <strong>{formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}</strong> privileges.</span>
           </div>
 
           <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>

@@ -29,6 +29,9 @@ const createUserSchema = z.object({
     .max(100, 'Password cannot exceed 100 characters')
     .optional()
     .nullable(),
+  isRestricted: z
+    .boolean()
+    .optional(),
 });
 
 const updateUserSchema = createUserSchema.partial();

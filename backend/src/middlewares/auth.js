@@ -51,6 +51,14 @@ const authenticateUser = async (req, res, next) => {
       });
     }
 
+    if (user.isRestricted) {
+      return res.status(403).json({
+        success: false,
+        error: 'Your account has been restricted by an administrator. Please contact support.',
+        isRestricted: true,
+      });
+    }
+
     req.user = user;
     next();
   } catch (error) {

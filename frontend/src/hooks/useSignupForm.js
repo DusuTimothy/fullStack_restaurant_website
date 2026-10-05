@@ -14,6 +14,7 @@ export const useSignupForm = (redirectUrl = '/') => {
     email: '',
     password: '',
     phone: '',
+    role: 'customer',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +25,10 @@ export const useSignupForm = (redirectUrl = '/') => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRoleSelect = (role) => {
+    setFormData((prev) => ({ ...prev, role }));
   };
 
   const handleSubmit = async (e) => {
@@ -61,6 +66,7 @@ export const useSignupForm = (redirectUrl = '/') => {
     errorMessage,
     errorDetails,
     handleChange,
+    handleRoleSelect,
     handleSubmit,
   };
 };

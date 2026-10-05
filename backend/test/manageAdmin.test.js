@@ -148,6 +148,7 @@ describe('Admin Management CLI Safeguards Test Suite', () => {
         async () => {
           await executeAdminManagement({
             argv: ['node', 'manageAdmin.js', 'promote', existingCustomerEmail],
+            env: {},
             promptQuestionFn: async () => 'no', // user types 'no'
           });
         },

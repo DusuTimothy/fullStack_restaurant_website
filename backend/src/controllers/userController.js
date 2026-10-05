@@ -146,12 +146,88 @@ const updateUser = async (req, res, next) => {
 };
 
 /**
+ * GET /api/users/me
+ * Fetches current authenticated user profile with associated orders.
+ */
+const getMyProfile = async (req, res, next) => {
+  try {
+    const user = await userService.getUserByIdWithOrders(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * PATCH /api/users/:id/restrict
+ * Toggles restriction status of a user (Admin only).
+ * Admins cannot restrict themselves.
+ */
+const toggleRestrictUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const targetId = parseInt(id, 10);
+
+    if (req.user.id === targetId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Administrators cannot restrict their own account',
+      });
+    }
+
+    const user = await userService.findUserById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: `User with ID ${id} not found`,
+      });
+    }
+
+    const newRestrictedState =
+      req.body && req.body.isRestricted !== undefined
+        ? Boolean(req.body.isRestricted)
+        : !user.isRestricted;
+
+    await user.update({ isRestricted: newRestrictedState });
+
+    return res.status(200).json({
+      success: true,
+      message: `User ${newRestrictedState ? 'restricted' : 'unrestricted'} successfully`,
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * DELETE /api/users/:id
- * Deletes user by ID (Admin only)
+ * Deletes user by ID.
+ * Access allowed for administrators or the user deleting their own account.
  */
 const deleteUser = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const targetId = parseInt(id, 10);
+
+    // Only administrators or the user themselves can delete this user profile
+    if (req.user.role !== 'admin' && req.user.id !== targetId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied: You can only delete your own account',
+      });
+    }
+
     const user = await userService.findUserById(id);
 
     if (!user) {
@@ -173,8 +249,10 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
   getAllUsers,
+  getMyProfile,
   getUserById,
   createUser,
   updateUser,
+  toggleRestrictUser,
   deleteUser,
 };

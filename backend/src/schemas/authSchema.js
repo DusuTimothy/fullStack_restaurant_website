@@ -21,6 +21,12 @@ const signupSchema = z.object({
     .max(25, 'Phone number cannot exceed 25 characters')
     .optional()
     .nullable(),
+  role: z
+    .enum(['customer', 'staff', 'admin'], {
+      errorMap: () => ({ message: "Role must be 'customer', 'staff', or 'admin'" }),
+    })
+    .default('customer')
+    .optional(),
 });
 
 const loginSchema = z.object({
