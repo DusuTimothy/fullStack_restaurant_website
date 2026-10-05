@@ -1,15 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 
 /**
  * Custom hook handling cart checkout and order placement.
  */
-export const useCartCheckout = ({ cart, orderNotes, clearCart, closeCart, isAuthenticated }) => {
+export const useCartCheckout = ({ cart, orderNotes, clearCart, closeCart, isAuthenticated, user }) => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState(null);
   const [orderSuccess, setOrderSuccess] = useState(null);
+
+  // Clear checkout messages if user logs out or switches accounts
+  useEffect(() => {
+    setErrorMessage(null);
+    setOrderSuccess(null);
+  }, [user?.id, isAuthenticated]);
 
   const handleSubmitOrder = async (e) => {
     if (e && e.preventDefault) e.preventDefault();

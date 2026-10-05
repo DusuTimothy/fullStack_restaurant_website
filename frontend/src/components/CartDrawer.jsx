@@ -39,6 +39,7 @@ const CartDrawer = () => {
     clearCart,
     closeCart,
     isAuthenticated,
+    user,
   });
 
   if (!isCartOpen) return null;

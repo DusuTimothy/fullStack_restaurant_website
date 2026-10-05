@@ -1,40 +1,71 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
 
+/**
+ * Returns the localStorage key scoped to the authenticated user ID.
+ * Returns null if user is not authenticated.
+ */
+export const getCartStorageKey = (userId) => (userId ? `restaurant_cart_user_${userId}` : null);
+
+/**
+ * Loads the user's scoped cart from localStorage.
+ */
+export const loadSavedCart = (userId) => {
+  if (!userId) return [];
+  try {
+    const key = getCartStorageKey(userId);
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+  } catch (err) {
+    console.error('Failed to load user cart:', err);
+    return [];
+  }
+};
+
 export const CartProvider = ({ children }) => {
   const { user, isAdmin, isAuthenticated } = useAuth();
+  const currentUserId = user?.id || null;
+  const activeUserIdRef = useRef(currentUserId);
 
-  const [cart, setCart] = useState(() => {
-    try {
-      const saved = localStorage.getItem('restaurant_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
+  const [cart, setCart] = useState(() => loadSavedCart(currentUserId));
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderNotes, setOrderNotes] = useState('');
 
-  // Persist cart to localStorage
+  // Clean up legacy un-scoped localStorage keys if present
   useEffect(() => {
     try {
-      localStorage.setItem('restaurant_cart', JSON.stringify(cart));
-    } catch (err) {
-      console.error('Failed to persist cart:', err);
-    }
-  }, [cart]);
-
-  // Clean up legacy localStorage key if present
-  useEffect(() => {
-    try {
+      localStorage.removeItem('restaurant_cart');
       localStorage.removeItem('restaurant_selected_user_id');
     } catch {
       // Ignore
     }
   }, []);
+
+  // Synchronize cart whenever authenticated user changes (login, logout, or account switch)
+  useEffect(() => {
+    if (activeUserIdRef.current !== currentUserId) {
+      activeUserIdRef.current = currentUserId;
+      // Clear in-memory cart, notes, and cart UI state on logout or account change
+      setIsCartOpen(false);
+      setOrderNotes('');
+      // Load current user's scoped cart (or empty if unauthenticated)
+      setCart(loadSavedCart(currentUserId));
+    }
+  }, [currentUserId]);
+
+  // Persist cart to localStorage scoped to the active authenticated user
+  useEffect(() => {
+    if (currentUserId && activeUserIdRef.current === currentUserId) {
+      try {
+        const key = getCartStorageKey(currentUserId);
+        localStorage.setItem(key, JSON.stringify(cart));
+      } catch (err) {
+        console.error('Failed to persist cart:', err);
+      }
+    }
+  }, [cart, currentUserId]);
 
   // Add item to cart
   const addToCart = (menuItem, qty = 1) => {
@@ -88,10 +119,18 @@ export const CartProvider = ({ children }) => {
     setCart((prev) => prev.filter((item) => item.menuItem.id !== menuItemId));
   };
 
-  // Clear entire cart
+  // Clear entire cart for active user
   const clearCart = () => {
     setCart([]);
     setOrderNotes('');
+    if (currentUserId) {
+      try {
+        const key = getCartStorageKey(currentUserId);
+        localStorage.removeItem(key);
+      } catch (err) {
+        console.error('Failed to clear cart storage:', err);
+      }
+    }
   };
 
   // Calculate totals

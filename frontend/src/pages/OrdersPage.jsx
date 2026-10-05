@@ -26,7 +26,7 @@ const OrdersPage = () => {
     totalRevenue,
     pendingCount,
     preparingCount,
-  } = useOrders({ isAuthenticated, authLoading });
+  } = useOrders({ isAuthenticated, authLoading, user });
 
   // If session is still loading
   if (authLoading) {

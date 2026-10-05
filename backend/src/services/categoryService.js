@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Category, MenuItem } = require('../models');
 
 /**
@@ -52,13 +53,19 @@ const findCategoryById = async (id) => {
 };
 
 /**
- * Checks whether a category name is already in use.
+ * Checks whether a category name is already in use by another category.
  *
  * @param {string} name
+ * @param {number|string|null} [excludeId]
  * @returns {Promise<boolean>}
  */
-const isCategoryNameTaken = async (name) => {
-  const existing = await Category.findOne({ where: { name } });
+const isCategoryNameTaken = async (name, excludeId = null) => {
+  const where = { name };
+  if (excludeId !== null && excludeId !== undefined) {
+    const parsedId = Number(excludeId);
+    where.id = { [Op.ne]: !isNaN(parsedId) ? parsedId : excludeId };
+  }
+  const existing = await Category.findOne({ where });
   return Boolean(existing);
 };
 
@@ -82,7 +89,13 @@ const createCategory = async ({ name, description }) => {
  * @returns {Promise<Category>}
  */
 const updateCategory = async (category, updates) => {
-  return await category.update(updates);
+  const payload = {};
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
+  return await category.update(payload);
 };
 
 /**

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosClient from '../api/axiosClient';
 
 /**
- * Custom hook managing category and menu item fetching, filtering, and local mutation.
+ * Custom hook managing category and menu item fetching, filtering, and mutations.
  */
 export const useMenu = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -12,25 +12,25 @@ export const useMenu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [initialEditingCategoryId, setInitialEditingCategoryId] = useState(null);
 
-  // Fetch categories on mount
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCategories = async () => {
-      try {
-        const res = await axiosClient.get('/categories');
-        if (isMounted && res.data?.data) {
-          setCategories(res.data.data);
-        }
-      } catch (err) {
-        console.error('Failed to load categories:', err);
+  // Fetch categories
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await axiosClient.get('/categories');
+      if (res.data?.data) {
+        setCategories(res.data.data);
       }
-    };
-    fetchCategories();
-    return () => {
-      isMounted = false;
-    };
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   // Fetch menu items when category filter changes
   const fetchMenuItems = useCallback(async () => {
@@ -64,11 +64,77 @@ export const useMenu = () => {
   });
 
   const handleItemAdded = (newItem) => {
-    setMenuItems((prev) => [newItem, ...prev]);
+    setMenuItems((prev) => {
+      if (selectedCategory && String(newItem.categoryId) !== String(selectedCategory)) {
+        return prev;
+      }
+      return [newItem, ...prev];
+    });
+    fetchCategories();
+  };
+
+  const handleItemUpdated = (updatedItem) => {
+    setMenuItems((prev) => {
+      if (selectedCategory && String(updatedItem.categoryId) !== String(selectedCategory)) {
+        return prev.filter((item) => item.id !== updatedItem.id);
+      }
+      return prev.map((item) => (item.id === updatedItem.id ? updatedItem : item));
+    });
+    fetchCategories();
   };
 
   const handleItemDeleted = (deletedId) => {
     setMenuItems((prev) => prev.filter((item) => item.id !== deletedId));
+    fetchCategories();
+  };
+
+  const handleCategoryAdded = (newCategory) => {
+    setCategories((prev) => [...prev, { ...newCategory, itemCount: 0 }]);
+    fetchCategories();
+  };
+
+  const handleCategoryUpdated = (updatedCategory) => {
+    setCategories((prev) =>
+      prev.map((cat) => (cat.id === updatedCategory.id ? { ...cat, ...updatedCategory } : cat))
+    );
+    // Update category badge on existing dishes
+    setMenuItems((prev) =>
+      prev.map((item) => {
+        if (
+          String(item.categoryId) === String(updatedCategory.id) ||
+          String(item.category?.id) === String(updatedCategory.id)
+        ) {
+          return {
+            ...item,
+            category: {
+              ...(item.category || {}),
+              id: updatedCategory.id,
+              name: updatedCategory.name,
+            },
+          };
+        }
+        return item;
+      })
+    );
+    fetchCategories();
+  };
+
+  const handleCategoryDeleted = (deletedId) => {
+    setCategories((prev) => prev.filter((cat) => cat.id !== deletedId));
+    if (String(selectedCategory) === String(deletedId)) {
+      setSelectedCategory('');
+    }
+    fetchCategories();
+  };
+
+  const openCategoryModal = (catToEdit = null) => {
+    setInitialEditingCategoryId(catToEdit ? catToEdit.id : null);
+    setIsCategoryModalOpen(true);
+  };
+
+  const closeCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setInitialEditingCategoryId(null);
   };
 
   return {
@@ -82,10 +148,21 @@ export const useMenu = () => {
     error,
     isAddModalOpen,
     setIsAddModalOpen,
+    isCategoryModalOpen,
+    openCategoryModal,
+    closeCategoryModal,
+    initialEditingCategoryId,
+    editingItem,
+    setEditingItem,
     filteredItems,
     fetchMenuItems,
+    fetchCategories,
     handleItemAdded,
+    handleItemUpdated,
     handleItemDeleted,
+    handleCategoryAdded,
+    handleCategoryUpdated,
+    handleCategoryDeleted,
   };
 };
 

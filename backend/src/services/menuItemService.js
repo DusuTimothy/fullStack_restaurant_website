@@ -109,7 +109,12 @@ const createMenuItem = async ({ name, description, price, categoryId, isAvailabl
  * @returns {Promise<MenuItem>}
  */
 const updateMenuItem = async (menuItem, updateData, file) => {
-  const payload = { ...updateData };
+  const payload = {};
+  for (const [key, value] of Object.entries(updateData)) {
+    if (value !== undefined) {
+      payload[key] = value;
+    }
+  }
 
   if (file) {
     const oldImage = menuItem.imageUrl;

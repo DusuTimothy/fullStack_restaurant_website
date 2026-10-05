@@ -83,10 +83,15 @@ const ProfilePage = () => {
       }
     };
 
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.id) {
       fetchProfile();
+    } else {
+      setProfileData(null);
+      setOrders([]);
+      setName('');
+      setPhone('');
     }
-  }, [user, isAuthenticated]);
+  }, [user?.id, isAuthenticated]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Filter, Plus } from 'lucide-react';
+import { Search, Filter, Plus, Layers, Pencil } from 'lucide-react';
 
 const MenuControls = ({
   categories,
@@ -11,6 +11,8 @@ const MenuControls = ({
   totalItemsCount,
   isAdmin,
   onOpenAddModal,
+  onOpenCategoryModal,
+  onEditCategory,
 }) => {
   return (
     <div className="menu-controls-card">
@@ -45,19 +47,34 @@ const MenuControls = ({
             All
           </button>
           {categories.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              className={`category-pill ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
-              onClick={() => onSelectCategory(cat.id.toString())}
-            >
-              {cat.name}
-            </button>
+            <div key={cat.id} className="category-pill-wrap">
+              <button
+                type="button"
+                className={`category-pill ${selectedCategory === cat.id.toString() ? 'active' : ''}`}
+                onClick={() => onSelectCategory(cat.id.toString())}
+              >
+                {cat.name}
+              </button>
+              {isAdmin && onEditCategory && (
+                <button
+                  type="button"
+                  className="category-pill-quick-edit-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditCategory(cat);
+                  }}
+                  title={`Edit category "${cat.name}"`}
+                  aria-label={`Edit category ${cat.name}`}
+                >
+                  <Pencil size={11} />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Right side: Search bar & Add Dish button (Admin only) */}
+      {/* Right side: Search bar & Admin Actions (Manage Categories & Add Dish) */}
       <div className="menu-search-add-group">
         <div className="search-bar-wrap">
           <Search size={17} className="search-icon" />
@@ -80,15 +97,29 @@ const MenuControls = ({
         </div>
 
         {isAdmin && (
-          <button
-            type="button"
-            className="btn-add-item"
-            onClick={onOpenAddModal}
-            title="Admin privilege: Add a new dish to the menu (Supports Multer file uploads)"
-          >
-            <Plus size={18} />
-            <span>Add Dish</span>
-          </button>
+          <div className="admin-menu-actions">
+            {onOpenCategoryModal && (
+              <button
+                type="button"
+                className="btn-manage-categories"
+                onClick={onOpenCategoryModal}
+                title="Admin privilege: Manage and edit menu categories"
+              >
+                <Layers size={16} />
+                <span>Categories</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="btn-add-item"
+              onClick={onOpenAddModal}
+              title="Admin privilege: Add a new dish to the menu (Supports Multer file uploads)"
+            >
+              <Plus size={18} />
+              <span>Add Dish</span>
+            </button>
+          </div>
         )}
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Plus, Check, AlertCircle, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Check, AlertCircle, Trash2, Pencil, Loader2 } from 'lucide-react';
 import useMenuItemCard from '../hooks/useMenuItemCard';
 
-const MenuItemCard = ({ item, onDelete }) => {
+const MenuItemCard = ({ item, onEdit, onDelete }) => {
   const {
     isAdmin,
     currentQuantityInCart,
@@ -33,18 +33,29 @@ const MenuItemCard = ({ item, onDelete }) => {
           </span>
         )}
 
-        {/* Admin Delete Action Button */}
+        {/* Admin Action Buttons (Edit & Delete) */}
         {isAdmin && (
-          <button
-            type="button"
-            className="card-admin-delete-btn"
-            onClick={handleDelete}
-            disabled={deleting}
-            title="Delete this dish (Admin Only)"
-            aria-label="Delete this dish"
-          >
-            {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-          </button>
+          <div className="card-admin-actions">
+            <button
+              type="button"
+              className="card-admin-edit-btn"
+              onClick={() => onEdit && onEdit(item)}
+              title="Edit this dish (Admin Only)"
+              aria-label="Edit this dish"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              type="button"
+              className="card-admin-delete-btn"
+              onClick={handleDelete}
+              disabled={deleting}
+              title="Delete this dish (Admin Only)"
+              aria-label="Delete this dish"
+            >
+              {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+            </button>
+          </div>
         )}
 
         {/* Availability Badge */}

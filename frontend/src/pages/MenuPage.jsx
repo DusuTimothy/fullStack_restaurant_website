@@ -2,6 +2,8 @@ import React from 'react';
 import { Loader2, Utensils, AlertCircle } from 'lucide-react';
 import MenuItemCard from '../components/MenuItemCard';
 import AddMenuItemModal from '../components/AddMenuItemModal';
+import EditMenuItemModal from '../components/EditMenuItemModal';
+import ManageCategoriesModal from '../components/ManageCategoriesModal';
 import MenuHero from '../components/MenuHero';
 import MenuControls from '../components/MenuControls';
 import { useCart } from '../context/CartContext';
@@ -19,10 +21,20 @@ const MenuPage = () => {
     error,
     isAddModalOpen,
     setIsAddModalOpen,
+    isCategoryModalOpen,
+    openCategoryModal,
+    closeCategoryModal,
+    initialEditingCategoryId,
+    editingItem,
+    setEditingItem,
     filteredItems,
     fetchMenuItems,
     handleItemAdded,
+    handleItemUpdated,
     handleItemDeleted,
+    handleCategoryAdded,
+    handleCategoryUpdated,
+    handleCategoryDeleted,
   } = useMenu();
 
   return (
@@ -30,7 +42,7 @@ const MenuPage = () => {
       {/* Hero Header */}
       <MenuHero />
 
-      {/* Control Bar: Filters, Search, and Add Action */}
+      {/* Control Bar: Filters, Search, Add Action & Category Management */}
       <MenuControls
         categories={categories}
         selectedCategory={selectedCategory}
@@ -41,6 +53,8 @@ const MenuPage = () => {
         totalItemsCount={filteredItems.length}
         isAdmin={isAdmin}
         onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenCategoryModal={() => openCategoryModal(null)}
+        onEditCategory={(cat) => openCategoryModal(cat)}
       />
 
       {/* Main Grid Content */}
@@ -80,7 +94,12 @@ const MenuPage = () => {
       ) : (
         <div className="menu-grid">
           {filteredItems.map((item) => (
-            <MenuItemCard key={item.id} item={item} onDelete={handleItemDeleted} />
+            <MenuItemCard
+              key={item.id}
+              item={item}
+              onEdit={(dish) => setEditingItem(dish)}
+              onDelete={handleItemDeleted}
+            />
           ))}
         </div>
       )}
@@ -91,6 +110,26 @@ const MenuPage = () => {
         onClose={() => setIsAddModalOpen(false)}
         categories={categories}
         onItemAdded={handleItemAdded}
+      />
+
+      {/* Edit Dish Modal */}
+      <EditMenuItemModal
+        isOpen={Boolean(editingItem)}
+        onClose={() => setEditingItem(null)}
+        item={editingItem}
+        categories={categories}
+        onItemUpdated={handleItemUpdated}
+      />
+
+      {/* Manage Categories Modal */}
+      <ManageCategoriesModal
+        isOpen={isCategoryModalOpen}
+        onClose={closeCategoryModal}
+        categories={categories}
+        onCategoryAdded={handleCategoryAdded}
+        onCategoryUpdated={handleCategoryUpdated}
+        onCategoryDeleted={handleCategoryDeleted}
+        initialEditingCategoryId={initialEditingCategoryId}
       />
     </div>
   );

@@ -74,8 +74,8 @@ const updateCategory = async (req, res, next) => {
       });
     }
 
-    if (req.body.name && req.body.name !== category.name) {
-      const nameExists = await categoryService.isCategoryNameTaken(req.body.name);
+    if (req.body.name) {
+      const nameExists = await categoryService.isCategoryNameTaken(req.body.name, id);
       if (nameExists) {
         return res.status(409).json({
           success: false,
@@ -86,11 +86,13 @@ const updateCategory = async (req, res, next) => {
     }
 
     await categoryService.updateCategory(category, req.body);
+    const plain = category.toJSON ? category.toJSON() : { ...category };
+    plain.itemCount = await categoryService.countCategoryMenuItems(id);
 
     return res.status(200).json({
       success: true,
       message: 'Category updated successfully',
-      data: category,
+      data: plain,
     });
   } catch (error) {
     next(error);
