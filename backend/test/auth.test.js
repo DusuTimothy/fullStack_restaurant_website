@@ -70,38 +70,55 @@ describe('Authentication & Authorization Suite', () => {
       assert.equal(body.data.user.password, undefined, 'Password must not be returned');
     });
 
-    test('supports signup for admin, staff, and customers', async () => {
-      const adminEmail = `admin_test_${Date.now()}@example.com`;
-      const resAdmin = await fetch(`${baseUrl}/api/auth/signup`, {
+    test('ignores client-supplied staff and admin roles', async () => {
+      for (const signupPath of ['/api/auth/signup', '/api/users/signup']) {
+        for (const suppliedRole of ['staff', 'admin']) {
+          const email = `public_${suppliedRole}_${Date.now()}_${Math.random()}@example.com`;
+          const res = await fetch(`${baseUrl}${signupPath}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: `Attempted ${suppliedRole}`,
+              email,
+              password: 'Password123!',
+              role: suppliedRole,
+            }),
+          });
+
+          const body = await res.json();
+          assert.equal(res.status, 201);
+          assert.equal(body.data.user.role, 'customer');
+
+          const savedUser = await User.findOne({ where: { email } });
+          assert.equal(savedUser.role, 'customer');
+        }
+      }
+    });
+
+    test('does not allow public signup to activate a passwordless privileged account', async () => {
+      const email = `passwordless_admin_${Date.now()}@example.com`;
+      const privilegedUser = await User.create({
+        name: 'Provisioned Admin',
+        email,
+        role: 'admin',
+        password: null,
+      });
+
+      const res = await fetch(`${baseUrl}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: 'New Admin User',
-          email: adminEmail,
+          name: 'Claimed Admin',
+          email,
           password: 'Password123!',
           role: 'admin',
         }),
       });
 
-      const bodyAdmin = await resAdmin.json();
-      assert.equal(resAdmin.status, 201);
-      assert.equal(bodyAdmin.data.user.role, 'admin');
-
-      const staffEmail = `staff_test_${Date.now()}@example.com`;
-      const resStaff = await fetch(`${baseUrl}/api/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'New Staff User',
-          email: staffEmail,
-          password: 'Password123!',
-          role: 'staff',
-        }),
-      });
-
-      const bodyStaff = await resStaff.json();
-      assert.equal(resStaff.status, 201);
-      assert.equal(bodyStaff.data.user.role, 'staff');
+      assert.equal(res.status, 409);
+      const body = await res.json();
+      assert.equal(body.success, false);
+      assert.equal((await User.findByPk(privilegedUser.id)).role, 'admin');
     });
 
     test('rejects login and authenticated requests for restricted users (403)', async () => {

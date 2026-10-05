@@ -52,23 +52,20 @@ const generateAuthPayload = (user) => {
 };
 
 /**
- * Signs up a new user (customer, staff, or admin) or activates an account.
+ * Signs up a new customer or activates a passwordless customer account.
  *
  * @param {object} params
  * @param {string} params.name
  * @param {string} params.email
  * @param {string} params.password
  * @param {string} [params.phone]
- * @param {string} [params.role='customer']
  * @returns {Promise<{ error?: string, conflictType?: string, details?: Array<{field: string, message: string}>, data?: object }>}
  */
-const registerUser = async ({ name, email, password, phone, role = 'customer' }) => {
+const registerCustomer = async ({ name, email, password, phone }) => {
   const normalized = normalizeEmail(email);
   const existingUser = await findUserWithPasswordByEmail(normalized);
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const validRoles = ['customer', 'staff', 'admin'];
-  const userRole = validRoles.includes(role) ? role : 'customer';
 
   if (existingUser) {
     if (existingUser.password) {
@@ -79,11 +76,18 @@ const registerUser = async ({ name, email, password, phone, role = 'customer' })
       };
     }
 
+    if (existingUser.role !== 'customer') {
+      return {
+        error: 'This account cannot be activated through public signup',
+        conflictType: 'PRIVILEGED_ACCOUNT',
+        details: [{ field: 'email', message: 'Contact an administrator to activate this account' }],
+      };
+    }
+
     await existingUser.update({
       name: name.trim(),
       password: hashedPassword,
       phone: phone ? phone.trim() : existingUser.phone,
-      role: userRole,
     });
 
     return { data: generateAuthPayload(existingUser) };
@@ -94,14 +98,14 @@ const registerUser = async ({ name, email, password, phone, role = 'customer' })
     email: normalized,
     password: hashedPassword,
     phone: phone ? phone.trim() : null,
-    role: userRole,
+    role: 'customer',
     isRestricted: false,
   });
 
   return { data: generateAuthPayload(newUser) };
 };
 
-const registerCustomer = registerUser;
+const registerUser = registerCustomer;
 
 /**
  * Authenticates user credentials.
