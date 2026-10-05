@@ -14,3 +14,4 @@ const AuthBrandHeader = ({ title, subtitle }) => {
 };
 
 export default AuthBrandHeader;
+ 
